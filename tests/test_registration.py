@@ -1,8 +1,8 @@
-import requests
 import pytest
 import allure
-from urls import *
-from data import *
+from urls import Urls
+from data import UsersData
+from methods import RegMethod
 
 
 class TestRegistration:
@@ -16,7 +16,7 @@ class TestRegistration:
             'password': create_random_password(),
             'name': create_random_username()
         }
-        response = requests.post(Urls.user_register, data=payload)
+        response = RegMethod.create_user(payload)
         deserials = response.json()
         assert response.status_code == 200
         assert deserials['success'] is True
@@ -34,7 +34,7 @@ class TestRegistration:
                         'то удаляется из базы после теста.')
     @pytest.mark.parametrize('credentials', UsersData.credentials_with_empty_field)
     def test_registration_one_required_field_is_empty_failed_submit(self, credentials):
-        response = requests.post(Urls.user_register, data=credentials)
+        response = RegMethod.create_user(credentials)
         assert (response.status_code == 403 and response.json() ==
                 {'success': False, 'message': 'Email, password and name are required fields'})
 
@@ -47,5 +47,5 @@ class TestRegistration:
             'password': create_random_password(),
             'name': create_random_username()
         }
-        response = requests.post(Urls.user_register, data=payload)
+        response = RegMethod.create_user(payload)
         assert response.status_code == 403 and response.json() == {'success': False, 'message': 'User already exists'}

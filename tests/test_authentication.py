@@ -1,4 +1,7 @@
+import pytest
+import allure
 from conftest import *
+from methods import AuthMethod
 
 
 class TestAuthentication:
@@ -7,7 +10,7 @@ class TestAuthentication:
                         'В ответе проверяются код и тело, в том числе получение accessToken и refreshToken')
     def test_auth_existing_account_success(self, create_new_user_and_delete):
         payload = create_new_user_and_delete[0]
-        response = requests.post(Urls.user_auth, data=payload)
+        response = AuthMethod.auth_user(payload)
         deserials = response.json()
         assert response.status_code == 200
         assert deserials['success'] is True
@@ -22,7 +25,7 @@ class TestAuthentication:
             'email': create_random_email(),
             'password': UsersData.password,
         }
-        response = requests.post(Urls.user_auth, data=payload)
+        response = AuthMethod.auth_user(payload)
         assert response.status_code == 401 and response.json() == {"success": False,
                                                                    "message": "email or password are incorrect"}
 
@@ -32,6 +35,6 @@ class TestAuthentication:
             'email': UsersData.email,
             'password': create_random_password(),
         }
-        response = requests.post(Urls.user_auth, data=payload)
+        response = AuthMethod.auth_user(payload)
         assert response.status_code == 401 and response.json() == {"success": False,
                                                                    "message": "email or password are incorrect"}

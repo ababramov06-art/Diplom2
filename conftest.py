@@ -23,7 +23,7 @@ def create_new_user_and_delete():
 
 
 @pytest.fixture
-@allure.title('Фикстура создает пользователя и заказ для его аккаунта')
+@allure.step('Фикстура создает пользователя и заказ для его аккаунта')
 def create_user_and_order_and_delete(create_new_user_and_delete):
     access_token = create_new_user_and_delete[1]['accessToken']
     headers = {'Authorization': access_token}
