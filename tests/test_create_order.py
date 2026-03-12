@@ -12,7 +12,8 @@ class TestCreateOrder:
                         'перед тестом и удаляется после.')
     @pytest.mark.parametrize('burger_ingredients', [IngredientData.burger_1, IngredientData.burger_2])
     def test_create_order_authenticated_user_success(self, create_new_user_and_delete, burger_ingredients):
-        headers = {'Authorization': create_new_user_and_delete[1]['accessToken']}
+        user_data = next(create_new_user_and_delete)
+        headers = {'Authorization': user_data['accessToken']}
         payload = {'ingredients': [burger_ingredients]}
         response = OrderMethod.create_order(payload, headers)
         deserials = response.json()

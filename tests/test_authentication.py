@@ -1,7 +1,8 @@
 import pytest
 import allure
-from conftest import *
 from methods import AuthMethod
+from helpers import create_random_username, create_random_email, create_random_password
+from data import UsersData
 
 
 class TestAuthentication:
@@ -10,7 +11,7 @@ class TestAuthentication:
                         'В ответе проверяются код и тело, в том числе получение accessToken и refreshToken')
     def test_auth_existing_account_success(self, create_new_user_and_delete):
         
-        payload = create_new_user_and_delete
+        payload = next(create_new_user_and_delete)
 
         response = AuthMethod.auth_user(payload)
         deserials = response.json()
@@ -18,8 +19,8 @@ class TestAuthentication:
         assert deserials['success'] is True
         assert 'accessToken' in deserials.keys()
         assert 'refreshToken' in deserials.keys()
-        assert deserials['user']['email'] == create_new_user_and_delete['email']
-        assert deserials['user']['name'] == create_new_user_and_delete['name']
+        assert deserials['user']['email'] == payload['email']
+        assert deserials['user']['name'] == payload['name']
 
     @allure.title('Проверка ответа на запрос аутентификации с незарегистрированным email')
     def test_auth_with_wrong_login_expected_error(self):
