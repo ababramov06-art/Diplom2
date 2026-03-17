@@ -10,9 +10,7 @@ class TestAuthentication:
     @allure.description('Аккаунт для проверки создается фикстурой перед тестом и удаляется после. '
                         'В ответе проверяются код и тело, в том числе получение accessToken и refreshToken')
     def test_auth_existing_account_success(self, create_new_user_and_delete):
-        
-        payload = next(create_new_user_and_delete)
-
+        payload, response = next(create_new_user_and_delete)
         response = AuthMethod.auth_user(payload)
         deserials = response.json()
         assert response.status_code == 200

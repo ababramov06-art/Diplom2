@@ -3,6 +3,7 @@ import allure
 from urls import Urls
 from data import UsersData
 from methods import RegMethod
+from helpers import create_random_username, create_random_email, create_random_password
 
 
 class TestRegistration:
@@ -26,7 +27,7 @@ class TestRegistration:
         assert deserials['user']['name'] == payload['name']
         # удаление использованных тестовых данных из базы после теста
         access_token = deserials['accessToken']
-        requests.delete(Urls.user_delete, headers={'Authorization': access_token})
+        RegMethod.delete_user(access_token)
 
     @allure.title('Проверка ответа на запрос регистрации с незаполненным обязательным полем')
     @allure.description('С помощью параметризации выполняем три теста: по очереди отправляем запросы, '

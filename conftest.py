@@ -18,7 +18,7 @@ def create_new_user_and_delete():
     response = RegMethod.create_user(payload_cred)
     response_body = response.json()
 
-    yield payload_cred
+    yield payload_cred, response_body
 
     access_token = response_body['accessToken']
     RegMethod.delete_user(access_token)

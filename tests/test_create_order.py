@@ -3,16 +3,14 @@ import allure
 from conftest import *
 from data import IngredientData
 from methods import OrderMethod
-
-
 class TestCreateOrder:
-    @allure.title('Проверка ответа о создании заказа на запрос с указанными ингредиентами аутентифицированным юзером')
+    @allure.title('Проверка ответа о создании заказа на запрос с указанными ингредиентами аутентифицированным пользователем')
     @allure.description('С помощью параметризации выполняем два теста: по очереди отправляем запросы '
                         'с разными наборами ингредиентов в бургере. Аккаунт для проверки создается фикстурой '
                         'перед тестом и удаляется после.')
     @pytest.mark.parametrize('burger_ingredients', [IngredientData.burger_1, IngredientData.burger_2])
     def test_create_order_authenticated_user_success(self, create_new_user_and_delete, burger_ingredients):
-        user_data = next(create_new_user_and_delete)
+        payload_cred, user_data = next(create_new_user_and_delete)
         headers = {'Authorization': user_data['accessToken']}
         payload = {'ingredients': [burger_ingredients]}
         response = OrderMethod.create_order(payload, headers)
@@ -35,7 +33,8 @@ class TestCreateOrder:
     @allure.description('Хэш ингредиента в запросе не передается. Аккаунт для проверки создается фикстурой '
                         'перед тестом и удаляется после.')
     def test_create_order_empty_ingredients_authenticated_user_expected_error(self, create_new_user_and_delete):
-        headers = {'Authorization': create_new_user_and_delete[1]['accessToken']}
+        payload, response = create_new_user_and_delete
+        headers = {'Authorization': response['accessToken']}
         payload = {'ingredients': []}
         response = OrderMethod.create_order(payload, headers)
         assert response.status_code == 400 and response.json() == {'success': False,
