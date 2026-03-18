@@ -12,7 +12,7 @@ class TestCreateOrder:
     def test_create_order_authenticated_user_success(self, create_new_user_and_delete, burger_ingredients):
         payload_cred, user_data = next(create_new_user_and_delete)
         headers = {'Authorization': user_data['accessToken']}
-        payload = {'ingredients': [burger_ingredients]}
+        payload = {'ingredients': burger_ingredients}
         response = OrderMethod.create_order(payload, headers)
         deserials = response.json()
         assert response.status_code == 200
@@ -33,7 +33,7 @@ class TestCreateOrder:
     @allure.description('Хэш ингредиента в запросе не передается. Аккаунт для проверки создается фикстурой '
                         'перед тестом и удаляется после.')
     def test_create_order_empty_ingredients_authenticated_user_expected_error(self, create_new_user_and_delete):
-        payload, response = create_new_user_and_delete
+        payload, response = next(create_new_user_and_delete)
         headers = {'Authorization': response['accessToken']}
         payload = {'ingredients': []}
         response = OrderMethod.create_order(payload, headers)
@@ -54,7 +54,8 @@ class TestCreateOrder:
     @allure.description('В запрос передается хэш несуществующего ингредиента. Аккаунт для проверки создается фикстурой '
                         'перед тестом и удаляется после.')
     def test_create_order_invalid_ingredients_authenticated_user_expected_error(self, create_new_user_and_delete):
-        headers = {'Authorization': create_new_user_and_delete[1]['accessToken']}
+        payload, response = next(create_new_user_and_delete)
+        headers = {'Authorization': response['accessToken']}
         payload = {'ingredients': [IngredientData.invalid_hash_ingredient]}
         response = OrderMethod.create_order(payload, headers)
         assert response.status_code == 400 and response.json() == {"success": False,
