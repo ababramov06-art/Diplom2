@@ -1,0 +1,62 @@
+import pytest
+import allure
+from conftest import *
+from data import IngredientData
+from methods import OrderMethod
+class TestCreateOrder:
+    @allure.title('Проверка ответа о создании заказа на запрос с указанными ингредиентами аутентифицированным пользователем')
+    @allure.description('С помощью параметризации выполняем два теста: по очереди отправляем запросы '
+                        'с разными наборами ингредиентов в бургере. Аккаунт для проверки создается фикстурой '
+                        'перед тестом и удаляется после.')
+    @pytest.mark.parametrize('burger_ingredients', [IngredientData.burger_1, IngredientData.burger_2])
+    def test_create_order_authenticated_user_success(self, create_new_user_and_delete, burger_ingredients):
+        payload_cred, user_data = next(create_new_user_and_delete)
+        headers = {'Authorization': user_data['accessToken']}
+        payload = {'ingredients': burger_ingredients}
+        response = OrderMethod.create_order(payload, headers)
+        deserials = response.json()
+        assert response.status_code == 200
+        assert deserials['success'] is True
+        assert 'name' in deserials.keys()
+        assert 'number' in deserials['order'].keys()
+
+    @allure.title('Проверка ответа о создании заказа на запрос с указанными ингредиентами неаутентифицированным юзером')
+    @allure.description('С помощью параметризации выполняем два теста: по очереди отправляем запросы '
+                        'с разными наборами ингредиентов в бургере. Токен аккаунта не передается.')
+    @pytest.mark.parametrize('burger_ingredients', [IngredientData.burger_1, IngredientData.burger_2])
+    def test_create_order_unauthenticated_user_success(self, burger_ingredients):
+        payload = {'ingredients': burger_ingredients}
+        response = OrderMethod.create_order(payload, Urls.headers)
+        assert response.status_code == 200 and response.json()["success"] is True
+
+    @allure.title('Проверка ответа при создании заказа запросом с неуказанными ингредиентами аутентифицированным юзером')
+    @allure.description('Хэш ингредиента в запросе не передается. Аккаунт для проверки создается фикстурой '
+                        'перед тестом и удаляется после.')
+    def test_create_order_empty_ingredients_authenticated_user_expected_error(self, create_new_user_and_delete):
+        payload, response = next(create_new_user_and_delete)
+        headers = {'Authorization': response['accessToken']}
+        payload = {'ingredients': []}
+        response = OrderMethod.create_order(payload, headers)
+        assert response.status_code == 400 and response.json() == {'success': False,
+                                                                   'message': 'Ingredient ids must be provided'}
+
+    @allure.title('Проверка ответа при создании заказа запросом с неуказанными ингредиентами '
+                  'неаутентифицированным пользователем')
+    @allure.description('Хэш ингредиента в запросе не передается. Токен аккаунта не передается.')
+    def test_create_order_empty_ingredients_unauthenticated_user_expected_error(self):
+        payload = {'ingredients': []}
+        response = OrderMethod.create_order(payload, Urls.headers)
+        assert response.status_code == 400 and response.json() == {'success': False,
+                                                                   'message': 'Ingredient ids must be provided'}
+
+    @allure.title('Проверка ответа при создании заказа запросом с невалидным хэшем ингредиента '
+                  'аутентифицированным юзером')
+    @allure.description('В запрос передается хэш несуществующего ингредиента. Аккаунт для проверки создается фикстурой '
+                        'перед тестом и удаляется после.')
+    def test_create_order_invalid_ingredients_authenticated_user_expected_error(self, create_new_user_and_delete):
+        payload, response = next(create_new_user_and_delete)
+        headers = {'Authorization': response['accessToken']}
+        payload = {'ingredients': [IngredientData.invalid_hash_ingredient]}
+        response = OrderMethod.create_order(payload, headers)
+        assert response.status_code == 400 and response.json() == {"success": False,
+                                                                   "message": "One or more ids provided are incorrect"}
